@@ -3,8 +3,8 @@ from database import get_engine
 from models import Atendente
 
 router = APIRouter(
-    prefix="/clientes",
-    tags=["Clientes"],
+    prefix="/atendentes",
+    tags=["Atendentes"],
 )
 
 engine = get_engine()

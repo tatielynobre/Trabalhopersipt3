@@ -3,8 +3,8 @@ from database import get_engine
 from models import Quarto
 
 router = APIRouter(
-    prefix="/clientes", # Prefixo para todas as rotas
-    tags=["Clientes"], # Tag para documentação automática
+    prefix="/quartos", # Prefixo para todas as rotas
+    tags=["Quartos"], # Tag para documentação automática
 )
 
 engine = get_engine()
