@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from database import get_engine
 from models.models import Atendente
+from bson import ObjectId
 
 router = APIRouter(
     prefix="/atendentes",
@@ -15,12 +16,19 @@ async def criar_atendente(atendente: Atendente):
     await engine.save(atendente)
     return atendente
 
-@router.get("/atendentes/{atendente_id}", response_model=Atendente)
+@router.get("/atendentes/{atendente_id}")
 async def obter_atendente(atendente_id: str):
-    atendente = await engine.find_one(Atendente, Atendente.id == atendente_id)
+    try:
+        obj_id = ObjectId(atendente_id)
+    except:
+        raise HTTPException(status_code=400, detail="ID inválido")
+    
+    atendente = await engine.find_one(Atendente, Atendente.id == obj_id)
     if not atendente:
         raise HTTPException(status_code=404, detail="Atendente não encontrado")
+    
     return atendente
+
 
 @router.get("/atendentes/", response_model=list[Atendente])
 async def listar_atendentes():
