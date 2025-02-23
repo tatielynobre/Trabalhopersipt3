@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from database import get_engine
-from models import Atendente
+from models.models import Atendente
 
 router = APIRouter(
     prefix="/atendentes",

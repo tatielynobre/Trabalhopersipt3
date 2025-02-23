@@ -1,14 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from database import get_engine
-from models import Quarto
+from models.models import Quarto
 
 router = APIRouter(
-    prefix="/quartos", # Prefixo para todas as rotas
-    tags=["Quartos"], # Tag para documentação automática
+    prefix="/quartos",
+    tags=["Quartos"],
 )
 
 engine = get_engine()
-
 
 @router.post("/quartos/", response_model=Quarto)
 async def criar_quarto(quarto: Quarto):

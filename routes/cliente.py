@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from database import get_engine
-from models import Cliente, Reserva
+from models.models import Cliente, Reserva
 
 router = APIRouter(
-    prefix="/clientes", # Prefixo para todas as rotas
-    tags=["Clientes"], # Tag para documentação automática
+    prefix="/clientes",
+    tags=["Clientes"],
 )
 
 engine = get_engine()
@@ -22,8 +22,8 @@ async def obter_cliente(cliente_id: str):
     return cliente
 
 @router.get("/clientes/", response_model=list[Cliente])
-async def listar_clientes():
-    return await engine.find(Cliente)
+async def listar_clientes(skip: int = 0, limit: int = 10):
+    return await engine.find(Cliente, skip=skip, limit=limit)
 
 @router.put("/clientes/{cliente_id}", response_model=Cliente)
 async def atualizar_cliente(cliente_id: str, cliente: Cliente):
@@ -44,3 +44,7 @@ async def deletar_cliente(cliente_id: str):
     await engine.remove(await engine.find(Reserva, Reserva.cliente == cliente.id))
     await engine.delete(cliente)
     return {"message": "Cliente e reservas associadas removidos"}
+
+@router.get("/clientes/nome/{nome}")
+async def buscar_cliente_por_nome(nome: str, skip: int = 0, limit: int = 10):
+    return await engine.find(Cliente, {"nome": {"$regex": nome, "$options": "i"}}, skip=skip, limit=limit)

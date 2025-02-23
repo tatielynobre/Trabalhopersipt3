@@ -7,11 +7,10 @@ import os
 load_dotenv()
 
 #conectando ao banco de dados
-DATABASE_URL = os.getenv("Database_url")
+DATABASE_URL = os.getenv("DATABASE_URL")
 client = AsyncIOMotorClient(DATABASE_URL)
-db = client.mydatabase
-engine = AIOEngine(client=client, database="mydatabase")
+engine = AIOEngine(client=client, database="Hotel")
+db = client.Hotel
 
 def get_engine() -> AIOEngine:
     return engine
-

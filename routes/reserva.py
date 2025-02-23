@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from database import get_engine
-from models import Reserva
+from models.models import Reserva
 
 router = APIRouter(
     prefix="/reservas",
@@ -42,3 +42,12 @@ async def deletar_reserva(reserva_id: str):
         raise HTTPException(status_code=404, detail="Reserva não encontrada")
     await engine.delete(reserva)
     return {"message": "Reserva removida"}
+
+@router.get("/reservas/completas")
+async def listar_reservas_completas():
+    reservas = await engine.find(Reserva, projection={"cliente": 1, "quarto": 1})
+    return reservas
+
+@router.get("/reservas/data/{ano}")
+async def listar_reservas_por_ano(ano: int):
+    return await engine.find(Reserva, {"data_inicio": {"$gte": f"{ano}-01-01", "$lte": f"{ano}-12-31"}})
