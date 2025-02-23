@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from database import get_engine
 from models.models import Cliente, Reserva
+from bson import ObjectId
 
 router = APIRouter(
     prefix="/clientes",
@@ -13,9 +14,6 @@ engine = get_engine()
 async def criar_cliente(cliente: Cliente):
     await engine.save(cliente)
     return cliente
-
-from bson import ObjectId
-from fastapi import HTTPException
 
 @router.get("/clientes/{cliente_id}")
 async def obter_cliente(cliente_id: str):

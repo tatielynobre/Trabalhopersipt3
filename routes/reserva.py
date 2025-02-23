@@ -4,6 +4,7 @@ from models.models import Reserva, Cliente, Quarto
 from bson import ObjectId
 from schema.schema import ReservaCreate
 from datetime import datetime
+from odmantic import engine
 
 '''
 a) Consultas por ID ok
@@ -118,11 +119,6 @@ async def deletar_reserva(reserva_id: str):
     await engine.delete(reserva)
     return {"message": "Reserva removida"}
 
-@router.get("/reservas/completas")
-async def listar_reservas_completas():
-    reservas = await engine.find(Reserva, projection={"cliente": 1, "quarto": 1})
-    return reservas
-
 @router.get("/reservas/ordenadas")
 async def listar_reservas_ordenadas():
     return await engine.find(Reserva, sort=Reserva.data_inicio.desc())
@@ -134,15 +130,22 @@ async def buscar_reservas_por_texto(texto: str):
 
 @router.get("/reservas/cliente/{cliente_id}", response_model=list[Reserva])
 async def listar_reservas_por_cliente(cliente_id: str):
-    reservas = await engine.find(Reserva, {"cliente_id": cliente_id})
+    try:
+        cliente_obj_id = ObjectId(cliente_id)  # Converter para ObjectId
+    except:
+        raise HTTPException(status_code=400, detail="ID do cliente inválido")
+
+    # Buscar reservas pelo campo cliente (sem acessar cliente.id)
+    reservas = await engine.find(Reserva, Reserva.cliente == cliente_obj_id)
     return reservas
 
 @router.get("/reservas/quarto/{quarto_id}", response_model=list[Reserva])
 async def listar_reservas_por_quarto(quarto_id: str):
-    reservas = await engine.find(Reserva, {"quarto_id": quarto_id})
-    return reservas
+    try:
+        quarto_obj_id = ObjectId(quarto_id)  # Converter para ObjectId
+    except:
+        raise HTTPException(status_code=400, detail="ID do quarto inválido")
 
-@router.get("/reservas/ordenadas/{campo}", response_model=list[Reserva])
-async def listar_reservas_ordenadas(campo: str):
-    reservas = await engine.find(Reserva, sort={campo: 1})
+    # Buscar reservas pelo campo quarto (sem acessar quarto.id)
+    reservas = await engine.find(Reserva, Reserva.quarto == quarto_obj_id)
     return reservas

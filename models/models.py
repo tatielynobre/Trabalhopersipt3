@@ -9,6 +9,7 @@ class Cliente(Model):
         nome: Optional[str] = None
         email: Optional[str] = None
         telefone: Optional[str] = None
+        # atendente: Atendente = Reference()
 
 class Quarto(Model):
         numQuarto: int
