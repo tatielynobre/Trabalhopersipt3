@@ -3,6 +3,15 @@ from database import get_engine
 from models.models import Quarto
 from bson import ObjectId
 
+'''
+a) Consultas por ID ok 
+b) Listagens filtradas por relacionamentos 
+c) Buscas por texto parcial e case insensitive. ok
+e) Agregações e contagens utilizando aggregation pipeline
+f) Classificações e ordenações ok
+g) Consultas complexas envolvendo múltiplas coleções
+'''
+
 router = APIRouter(
     prefix="/quartos",
     tags=["Quartos"],
@@ -31,6 +40,16 @@ async def obter_quarto(quarto_id: str):
 @router.get("/quartos/", response_model=list[Quarto])
 async def listar_quartos():
     return await engine.find(Quarto)
+
+@router.get("/quartos/busca/{texto}", response_model=list[Quarto])
+async def buscar_quartos_por_texto(texto: str):
+    quartos = await engine.find(Quarto, {"$text": {"$search": texto, "$caseSensitive": False}})
+    return quartos
+
+@router.get("/quartos/ordenados/{campo}", response_model=list[Quarto])
+async def listar_quartos_ordenados(campo: str):
+    quartos = await engine.find(Quarto, sort={campo: 1})
+    return quartos
 
 @router.put("/quartos/{quarto_id}", response_model=Quarto)
 async def atualizar_quarto(quarto_id: str, quarto: Quarto):

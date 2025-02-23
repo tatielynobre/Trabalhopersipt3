@@ -11,7 +11,7 @@ b) Listagens filtradas por relacionamentos ok
 c) Buscas por texto parcial e case insensitive. ok
 d) Filtros por data/ano utilizando consultas baseadas em operadores do MongoDB ok
 e) Agregações e contagens utilizando aggregation pipeline
-f) Classificações e ordenações
+f) Classificações e ordenações ok
 g) Consultas complexas envolvendo múltiplas coleções
 '''
 
@@ -140,4 +140,9 @@ async def listar_reservas_por_cliente(cliente_id: str):
 @router.get("/reservas/quarto/{quarto_id}", response_model=list[Reserva])
 async def listar_reservas_por_quarto(quarto_id: str):
     reservas = await engine.find(Reserva, {"quarto_id": quarto_id})
+    return reservas
+
+@router.get("/reservas/ordenadas/{campo}", response_model=list[Reserva])
+async def listar_reservas_ordenadas(campo: str):
+    reservas = await engine.find(Reserva, sort={campo: 1})
     return reservas
