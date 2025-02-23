@@ -2,6 +2,16 @@ from fastapi import APIRouter, HTTPException
 from database import get_engine
 from models.models import Reserva
 
+'''
+a) Consultas por ID ok
+b) Listagens filtradas por relacionamentos ok
+c) Buscas por texto parcial e case insensitive. ok
+d) Filtros por data/ano utilizando consultas baseadas em operadores do MongoDB ok
+e) Agregações e contagens utilizando aggregation pipeline
+f) Classificações e ordenações
+g) Consultas complexas envolvendo múltiplas coleções
+'''
+
 router = APIRouter(
     prefix="/reservas",
     tags=["Reservas"],
@@ -51,3 +61,18 @@ async def listar_reservas_completas():
 @router.get("/reservas/data/{ano}")
 async def listar_reservas_por_ano(ano: int):
     return await engine.find(Reserva, {"data_inicio": {"$gte": f"{ano}-01-01", "$lte": f"{ano}-12-31"}})
+
+@router.get("/reservas/busca/{texto}", response_model=list[Reserva])
+async def buscar_reservas_por_texto(texto: str):
+    reservas = await engine.find(Reserva, {"$text": {"$search": texto, "$caseSensitive": False}})
+    return reservas
+
+@router.get("/reservas/cliente/{cliente_id}", response_model=list[Reserva])
+async def listar_reservas_por_cliente(cliente_id: str):
+    reservas = await engine.find(Reserva, {"cliente_id": cliente_id})
+    return reservas
+
+@router.get("/reservas/quarto/{quarto_id}", response_model=list[Reserva])
+async def listar_reservas_por_quarto(quarto_id: str):
+    reservas = await engine.find(Reserva, {"quarto_id": quarto_id})
+    return reservas
