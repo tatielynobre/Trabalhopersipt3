@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from database import get_engine
 from models.models import Reserva, Cliente, Quarto
 from bson import ObjectId
 from schema.schema import ReservaCreate
 from datetime import datetime
-from odmantic import engine, AIOEngine
+from odmantic import engine
 import logging
 
 '''
