@@ -7,6 +7,5 @@ class ReservaCreate(BaseModel):
     cliente_id: str
     quarto_id: str
 
-class AssociacaoClienteAtendente(BaseModel):
+class ClienteID(BaseModel):
     cliente_id: str
-    atendente_id: str

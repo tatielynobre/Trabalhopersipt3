@@ -41,11 +41,6 @@ async def obter_quarto(quarto_id: str):
 async def listar_quartos():
     return await engine.find(Quarto)
 
-@router.get("/quartos/busca/{texto}", response_model=list[Quarto])
-async def buscar_quartos_por_texto(texto: str):
-    quartos = await engine.find(Quarto, {"$text": {"$search": texto, "$caseSensitive": False}})
-    return quartos
-
 @router.get("/quartos/ordenados/{campo}", response_model=list[Quarto])
 async def listar_quartos_ordenados(campo: str):
     quartos = await engine.find(Quarto, sort={campo: 1})

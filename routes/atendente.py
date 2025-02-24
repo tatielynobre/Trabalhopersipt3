@@ -1,8 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from database import get_engine
-from models.models import Atendente, Cliente
+from models.models import Atendente
 from bson import ObjectId
-from schema.schema import AssociacaoClienteAtendente
 
 router = APIRouter(
     prefix="/atendentes",
@@ -33,6 +32,10 @@ async def obter_atendente(atendente_id: str):
 async def listar_atendentes():
     return await engine.find(Atendente)
 
+@router.get("/atendentes/nome/{nome}")
+async def buscar_atendente_por_nome(nome: str, skip: int = 0, limit: int = 10):
+    return await engine.find(Atendente, {"nome": {"$regex": nome, "$options": "i"}}, skip=skip, limit=limit)
+
 @router.delete("/atendentes/{atendente_id}")
 async def deletar_atendente(atendente_id: str):
     atendente = await engine.find_one(Atendente, Atendente.id == atendente_id)
@@ -40,27 +43,3 @@ async def deletar_atendente(atendente_id: str):
         raise HTTPException(status_code=404, detail="Atendente não encontrado")
     await engine.delete(atendente)
     return {"message": "Atendente removido"}
-
-@router.post("/associar", response_model=dict)
-async def associar_cliente_atendente(associacao: AssociacaoClienteAtendente):
-    try:
-        # Converter os IDs para ObjectId
-        cliente_obj_id = ObjectId(associacao.cliente_id)
-        atendente_obj_id = ObjectId(associacao.atendente_id)
-    except:
-        raise HTTPException(status_code=400, detail="IDs inválidos")
-
-    # Buscar Cliente e Atendente no banco
-    cliente = await engine.find_one(Cliente, Cliente.id == cliente_obj_id)
-    atendente = await engine.find_one(Atendente, Atendente.id == atendente_obj_id)
-
-    if not cliente:
-        raise HTTPException(status_code=404, detail="Cliente não encontrado")
-    if not atendente:
-        raise HTTPException(status_code=404, detail="Atendente não encontrado")
-    
-    # Aqui você pode associar o cliente ao atendente (um exemplo simples)
-    cliente.atendente = atendente
-    await engine.save(cliente)
-
-    return {"message": "Cliente associado ao atendente com sucesso", "cliente_id": cliente.id, "atendente_id": atendente.id}

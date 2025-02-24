@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from database import get_engine
 from models.models import Reserva, Cliente, Quarto
 from bson import ObjectId
 from schema.schema import ReservaCreate
 from datetime import datetime
-from odmantic import engine
+from odmantic import engine, AIOEngine
+import logging
 
 '''
 a) Consultas por ID ok
@@ -15,6 +16,7 @@ e) Agregações e contagens utilizando aggregation pipeline
 f) Classificações e ordenações ok
 g) Consultas complexas envolvendo múltiplas coleções
 '''
+logging.basicConfig(level=logging.INFO)
 
 router = APIRouter(
     prefix="/reservas",
@@ -123,11 +125,6 @@ async def deletar_reserva(reserva_id: str):
 async def listar_reservas_ordenadas():
     return await engine.find(Reserva, sort=Reserva.data_inicio.desc())
 
-@router.get("/reservas/busca/{texto}", response_model=list[Reserva])
-async def buscar_reservas_por_texto(texto: str):
-    reservas = await engine.find(Reserva, {"$text": {"$search": texto, "$caseSensitive": False}})
-    return reservas
-
 @router.get("/reservas/cliente/{cliente_id}", response_model=list[Reserva])
 async def listar_reservas_por_cliente(cliente_id: str):
     try:
@@ -139,13 +136,29 @@ async def listar_reservas_por_cliente(cliente_id: str):
     reservas = await engine.find(Reserva, Reserva.cliente == cliente_obj_id)
     return reservas
 
-@router.get("/reservas/quarto/{quarto_id}", response_model=list[Reserva])
-async def listar_reservas_por_quarto(quarto_id: str):
-    try:
-        quarto_obj_id = ObjectId(quarto_id)  # Converter para ObjectId
-    except:
-        raise HTTPException(status_code=400, detail="ID do quarto inválido")
+@router.get("/reservas/ordenadas/crescente")
+async def listar_reservas_ordenadas_crescente():
+    return await engine.find(Reserva, sort=Reserva.data_inicio.asc())
 
-    # Buscar reservas pelo campo quarto (sem acessar quarto.id)
-    reservas = await engine.find(Reserva, Reserva.quarto == quarto_obj_id)
-    return reservas
+@router.get("/reservas/ordenadas/decrescente")
+async def listar_reservas_ordenadas_decrescente():
+    return await engine.find(Reserva, sort=Reserva.data_inicio.desc())
+
+@router.get("/reservas/contagem-por-cliente/{cliente_id}")
+async def contar_reservas_por_cliente(cliente_id: str):
+    try:
+        object_id = ObjectId(cliente_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="ID inválido")
+
+    pipeline = [
+        {"$match": {"cliente": object_id}},  # Ajustado para procurar clientes como ObjectId
+        {"$group": {"_id": "$cliente", "total_reservas": {"$sum": 1}}}
+    ]
+
+    resultado = await engine.get_collection(Reserva).aggregate(pipeline).to_list(None)
+
+    if not resultado:
+        return {"cliente_id": cliente_id, "total_reservas": 0}
+
+    return {"cliente_id": cliente_id, "total_reservas": resultado[0]["total_reservas"]}
